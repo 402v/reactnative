@@ -46,29 +46,69 @@ var DetailPage = React.createClass({
 // list page
 var ListPage = React.createClass({
   getInitialState() {
+    var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
     return {
+      // segment control
       titles: ['最新', '分类'],
       selectedIndex: 0,
       welcomeText: '最新',
+
+      // list view
+      dataSource: ds.cloneWithRows(this._genRow({})),
     };
   },
+
+  _pressData: ({}: {[key: number]: boolean}),
+
+  componentWillMount: function() {
+    this._pressData = {};
+  }
 
   render() {
     return (
       <View style={[styles.container]}>
         <Text style={styles.welcome}>{this.state.welcomeText}</Text>
 
-        // pre selected & color & event segmented control
         <SegmentedControlIOS 
           style={styles.segment} 
           values={this.state.titles}
           selectedIndex={this.state.selectedIndex}
           onChange={this._onChange}
           onValueChange={this._onValueChange} />
+
+        <ListView 
+          dataSource={this.state.dataSource}
+          renderRow={this._renderRow} />
       </View>
     );
   },
 
+  // list
+  _renderRow: function(rowData: string, sectionID: number, rowID: number) {
+    return (
+      <TouchableHighlight onPress={() => this._pressRow(rowID)}>
+        <View />
+      </TouchableHighlight>
+    );
+  },
+
+  _genRow: function(pressData: {[key: number]: boolean}): Array<string> {
+    var dataBlob = [];
+    for (var idx = 0; idx < 100; idx++) {
+      var pressText = pressData[idx] ? ' (pressed' : '';
+        dataBlob.push('Row ' + idx + pressText);
+    }
+    return dataBlob;
+  },
+
+  _pressRow: function(rowID: number) {
+    this._pressData[rowID] = !this._pressData[rowID];
+    this.setState({
+      dataSource: this.state.dataSource.cloneWithRows(this._genRow(this._pressData))
+    });
+  },
+
+  // segment actions
   _onChange(event) {
     this.setState({
       selectedIndex: event.nativeEvent.selectedSegmentIndex,
@@ -108,7 +148,7 @@ var Firststep = React.createClass({
 });
 
 var styles = StyleSheet.create({
-  container: {  // ListView, ListCell
+  container: {  // ListPage,DetailPage
     flex: 1,
     // justifyContent: 'center',
     // alignItems: 'center',
@@ -118,6 +158,8 @@ var styles = StyleSheet.create({
     // marginBottom: 10,
     backgroundColor: 'purple',//'#F5FCFF',
   },
+
+  // segment
   segment: {
     tintColor: "#ff0000",
   },
@@ -131,6 +173,20 @@ var styles = StyleSheet.create({
     color: '#333333',
     marginBottom: 5,
   },
+
+  // list
+  row: {
+  },
+  separator: {
+    height: 1,
+    backgroundColor: "#CCCCCC",
+  },
+  thumb: {
+
+  },
+  press_title: {
+
+  }
 });
 
 AppRegistry.registerComponent('firststep', () => Firststep);
